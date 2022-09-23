@@ -29,6 +29,22 @@ def apply_brightness_contrast(input_img, brightness=0, contrast=0):
 	return buf
 
 
+def getBorderPoint(radius, angle, currentPoint, targetPoint):
+	newA = radius * math.sin(angle)
+	newB = newA / math.tan(angle)
+
+	if currentPoint[0] < targetPoint[0]:
+		X = currentPoint[0] + newA
+	else:
+		X = currentPoint[0] - newA
+
+	if currentPoint[1] < targetPoint[1]:
+		Y = currentPoint[1] + newB
+	else:
+		Y = currentPoint[1] - newB
+
+	return int(X), int(Y)
+
 
 daubeIndex = 0
 smallestRadius = 0
@@ -36,7 +52,7 @@ indexToDistance = {}
 #newImage = np.zeros((s*2, s*3, 3), dtype = np.uint8)
 
 # load the image, clone it for output, and then convert it to grayscale
-image = cv2.imread("kreise_gimp_beruehren.png")
+image = cv2.imread("kreise_gimp_mitte.png")
 #image = cv2.resize(image, (2000,2000))
 
 contrast_brightness = apply_brightness_contrast(image, 37, 77)
@@ -70,17 +86,18 @@ if circles is not None:
 		if i != daubeIndex:
 			a = abs(circles[daubeIndex][0] - x)
 			b = abs(circles[daubeIndex][1] - y)
-
 			c = math.sqrt(a ** 2 + b ** 2)
-			c = (c / r) * 12.5;
-			#c = c - r - circles[daubeIndex][2]
+			alpha = math.asin(a / c)
 
-			indexToDistance[i] = c
+			indexToDistance[i] = c - r - circles[daubeIndex][2]
 
-			cv2.putText(output, "{0:.2f}cm".format(c), (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7,(0, 0, 0), 1)
-			cv2.line(output, (circles[daubeIndex][0], circles[daubeIndex][1]), (x, y), [0, 255, 0], 2)
+			cm = (indexToDistance[i] / r) * 12.5
+
+			cv2.putText(output, "{0:.2f}cm".format(cm), (getBorderPoint(r, alpha, (x, y), (circles[daubeIndex][0], circles[daubeIndex][1]))), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 1)
+			cv2.line(output, (getBorderPoint(circles[daubeIndex][2], alpha, (circles[daubeIndex][0], circles[daubeIndex][1]), (x, y))), (getBorderPoint(r, alpha, (x, y), (circles[daubeIndex][0], circles[daubeIndex][1]))), [0, 255, 0], 2)
 
 		i = i + 1
+
 	# show the output image
 	output = cv2.resize(output, (500,500))
 	cv2.imshow("output", output) #np.hstack([image, output])
