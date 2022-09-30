@@ -37,46 +37,49 @@ indexToDistance = {}
 
 # load the image, clone it for output, and then convert it to grayscale
 image = cv2.imread("curling.jpg")
+image = cv2.resize(image, (1000,1000))
 #image = cv2.resize(image, (2000,2000))
 
-gray = apply_brightness_contrast(image, -106, 122)
-cv2.imshow("kontrast", gray) #np.hstack([image, output])
+#gray = apply_brightness_contrast(image, -106, 122)
+#cv2.imshow("kontrast", gray) #np.hstack([image, output])
+#cv2.waitKey()
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+cv2.imshow("image", gray) #np.hstack([image, output])
 cv2.waitKey()
 
 gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
-cv2.imshow("grau", gray) #np.hstack([image, output])
+cv2.imshow("image", gray) #np.hstack([image, output])
 cv2.waitKey()
 
 # apply GuassianBlur to reduce noise. medianBlur is also added for smoothening, reducing noise.
-gray = cv2.GaussianBlur(gray, (5, 5), 0);
-cv2.imshow("gaus", gray) #np.hstack([image, output])
+gray = cv2.GaussianBlur(gray, (5, 5), 0)
+cv2.imshow("image", gray) #np.hstack([image, output])
 cv2.waitKey()
 gray = cv2.medianBlur(gray, 5)
-cv2.imshow("median", gray) #np.hstack([image, output])
+cv2.imshow("image", gray) #np.hstack([image, output])
 cv2.waitKey()
 
 # Adaptive Guassian Threshold is to detect sharp edges in the Image. For more information Google it.
 gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, \
-							 cv2.THRESH_BINARY, 11, 3.5)
+							 cv2.THRESH_BINARY, 17, 1.5)
 
-cv2.imshow("adaptivetreshhold", gray) #np.hstack([image, output])
+cv2.imshow("image", gray) #np.hstack([image, output])
 cv2.waitKey()
 
 kernel = np.ones((2, 2), np.uint8)
 gray = cv2.erode(gray, kernel, iterations=1)
 # gray = erosion
-cv2.imshow("erosion", gray) #np.hstack([image, output])
+cv2.imshow("image", gray) #np.hstack([image, output])
 cv2.waitKey()
 
-#gray = cv2.dilate(gray, kernel, iterations=1)
-# gray = dilation
-#cv2.imshow("dilate", gray) #np.hstack([image, output])
-#cv2.waitKey()
+gray = cv2.dilate(gray, kernel, iterations=1)
+cv2.imshow("image", gray)
+cv2.waitKey()
 
-output = image.copy()
+output = gray.copy()
 
 # detect circles in the image
-circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 260, param1=10, param2=20)
+circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 260, param1=30, param2=65)
 # ensure at least some circles were found
 if circles is not None:
 	# convert the (x, y) coordinates and radius of the circles to integers
@@ -115,7 +118,7 @@ if circles is not None:
 		i = i + 1
 	# show the output image
 	output = cv2.resize(output, (500,500))
-	cv2.imshow("output", output) #np.hstack([image, output])
+	cv2.imshow("image", output) #np.hstack([image, output])
 	cv2.waitKey()
 	print(circles[daubeIndex])
 else:
