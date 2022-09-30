@@ -4,6 +4,13 @@ import cv2
 import math
 
 
+def viewImage(image):
+	cv2.namedWindow('Display', cv2.WINDOW_NORMAL)
+	cv2.imshow('Display', image)
+	cv2.waitKey(0)
+	cv2.destroyAllWindows()
+
+
 def apply_brightness_contrast(input_img, brightness=0, contrast=0):
 	if brightness != 0:
 		if brightness > 0:
@@ -52,16 +59,32 @@ indexToDistance = {}
 #newImage = np.zeros((s*2, s*3, 3), dtype = np.uint8)
 
 # load the image, clone it for output, and then convert it to grayscale
-image = cv2.imread("kreise_gimp_mitte.png")
+image = cv2.imread("curling.jpg")
 #image = cv2.resize(image, (2000,2000))
 
-contrast_brightness = apply_brightness_contrast(image, 37, 77)
+#contrast_brightness = apply_brightness_contrast(image, 37, 77)
 
-gray = cv2.cvtColor(contrast_brightness, cv2.COLOR_BGR2GRAY)
-output = image.copy()
+hsv_img = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+viewImage(hsv_img)
 
 # detect circles in the image
-circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1.2, 100, param1=10, param2=26)
+
+#RGB_again = cv2.cvtColor(hsv_img, cv2.COLOR_HSV2RGB)
+gray = cv2.cvtColor(hsv_img, cv2.COLOR_BGR2GRAY)
+viewImage(gray)
+
+img = cv2.GaussianBlur(gray, (5, 5), 0)
+viewImage(img)
+
+#img = cv2.medianBlur(gray,5)
+
+ret, threshold = cv2.threshold(img, 73, 255, 0)
+viewImage(threshold)
+
+#img = cv2.GaussianBlur(threshold, (5, 5), 0)
+#viewImage(img)
+
+circles = cv2.HoughCircles(threshold, cv2.HOUGH_GRADIENT, 1.2, 100, param1=15, param2=36)
 # ensure at least some circles were found
 if circles is not None:
 	# convert the (x, y) coordinates and radius of the circles to integers
@@ -76,32 +99,33 @@ if circles is not None:
 
 	i = 0
 	for (x, y, r) in circles:
-		print(x,y,r)
 		# draw the circle in the output image, then draw a rectangle
 		# corresponding to the center of the circle
 
-		cv2.circle(output, (x, y), r, (0, 255, 0), 2)
-		cv2.rectangle(output, (x - 2, y - 2), (x + 2, y + 2), (0, 128, 255), -1)
+		if r < 70:
+			cv2.circle(image, (x, y), r, (0, 255, 0), 2)
+			cv2.rectangle(image, (x - 2, y - 2), (x + 2, y + 2), (0, 128, 255), -1)
 
-		if i != daubeIndex:
-			a = abs(circles[daubeIndex][0] - x)
-			b = abs(circles[daubeIndex][1] - y)
-			c = math.sqrt(a ** 2 + b ** 2)
-			alpha = math.asin(a / c)
+			if i != daubeIndex:
+				a = abs(circles[daubeIndex][0] - x)
+				b = abs(circles[daubeIndex][1] - y)
+				print(a, b)
+				c = math.sqrt(a ** 2 + b ** 2)
 
-			indexToDistance[i] = c - r - circles[daubeIndex][2]
+				if c != 0:
+					alpha = math.asin(a / c)
 
-			cm = (indexToDistance[i] / r) * 12.5
+					indexToDistance[i] = c - r - circles[daubeIndex][2]
 
-			cv2.putText(output, "{0:.2f}cm".format(cm), (getBorderPoint(r, alpha, (x, y), (circles[daubeIndex][0], circles[daubeIndex][1]))), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 1)
-			cv2.line(output, (getBorderPoint(circles[daubeIndex][2], alpha, (circles[daubeIndex][0], circles[daubeIndex][1]), (x, y))), (getBorderPoint(r, alpha, (x, y), (circles[daubeIndex][0], circles[daubeIndex][1]))), [0, 255, 0], 2)
+					cm = (indexToDistance[i] / r) * 12.5
 
-		i = i + 1
+					cv2.putText(image, "{0:.2f}cm".format(cm), (getBorderPoint(r, alpha, (x, y), (circles[daubeIndex][0], circles[daubeIndex][1]))), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 1)
+					cv2.line(image, (getBorderPoint(circles[daubeIndex][2], alpha, (circles[daubeIndex][0], circles[daubeIndex][1]), (x, y))), (getBorderPoint(r, alpha, (x, y), (circles[daubeIndex][0], circles[daubeIndex][1]))), [0, 255, 0], 2)
+
+			i = i + 1
 
 	# show the output image
-	output = cv2.resize(output, (500,500))
-	cv2.imshow("output", output) #np.hstack([image, output])
-	cv2.waitKey()
-	print(circles[daubeIndex])
+	output = cv2.resize(threshold, (500,500))
+	viewImage(image) #np.hstack([image, output])
 else:
 	print("No circles found")
