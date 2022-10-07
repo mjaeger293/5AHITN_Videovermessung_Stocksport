@@ -1,7 +1,6 @@
-'''
+"""
 A simple Program for grabing video from basler camera and converting it to opencv img.
-Tested on Basler acA1300-200uc (USB3, linux 64bit , python 3.5)
-'''
+"""
 from pypylon import pylon
 import cv2
 
@@ -9,28 +8,38 @@ import cv2
 camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
 
 # Grabing Continusely (video) with minimal delay
-camera.StartGrabbing(1)
-converter = pylon.ImageFormatConverter()
+# camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
 
-# converting to opencv bgr format
-converter.OutputPixelFormat = pylon.PixelType_BGR8packed
-converter.OutputBitAlignment = pylon.OutputBitAlignment_MsbAligned
+# Grabs a single image from the camera
+while True:
+    input("Press Enter to take a picture ...")
 
-while camera.IsGrabbing():
-    grabResult = camera.RetrieveResult(5000000, pylon.TimeoutHandling_ThrowException)
+    camera.StartGrabbing()
+    converter = pylon.ImageFormatConverter()
 
-    if grabResult.GrabSucceeded():
-        # Access the image data
-        image = converter.Convert(grabResult)
-        img = image.GetArray()
-        cv2.namedWindow('title', cv2.WINDOW_NORMAL)
-        cv2.imshow('title', img)
-        k = cv2.waitKey(1)
-        if k == 27:
-            break
-    grabResult.Release()
+    # converting to opencv bgr format
+    converter.OutputPixelFormat = pylon.PixelType_BGR8packed
+    converter.OutputBitAlignment = pylon.OutputBitAlignment_MsbAligned
 
-# Releasing the resource
-camera.StopGrabbing()
+    while camera.IsGrabbing():
+        grabResult = camera.RetrieveResult(5000000, pylon.TimeoutHandling_ThrowException)
 
-cv2.destroyAllWindows()
+        if grabResult.GrabSucceeded():
+            # Access the image data
+            img = converter.Convert(grabResult)
+            image = img.GetArray()
+
+            cv2.namedWindow('title', cv2.WINDOW_NORMAL)
+            cv2.imshow('title', image)
+            cv2.waitKey(0)
+        # code below lets user display a video
+        # k = cv2.waitKey(1)
+        # if k == 27:
+        #    break
+        grabResult.Release()
+
+        # Releasing the resource
+        camera.StopGrabbing()
+
+        cv2.destroyAllWindows()
+        break
