@@ -1,4 +1,6 @@
 # import the necessary packages
+import random
+
 from skimage.metrics import structural_similarity
 import numpy as np
 import cv2
@@ -10,9 +12,10 @@ daubeIndex = 0
 smallestRadius = 0
 indexToDistance = {}
 isFirstImage = True
-daube = np.array([])
+daube = None
 
 def viewImage(image):
+    image = cv2.resize(image, (500, 500))
     cv2.namedWindow('Display')
     cv2.imshow('Display', image)
     cv2.waitKey(0)
@@ -47,11 +50,6 @@ def testing(before, after):
     global daube
     global isFirstImage
 
-    old_daube = np.array([])
-
-    if daube.size != 0:
-        old_daube = daube
-
     before_gray = cv2.cvtColor(before, cv2.COLOR_BGR2GRAY)
     after_gray = cv2.cvtColor(after, cv2.COLOR_BGR2GRAY)
 
@@ -59,54 +57,98 @@ def testing(before, after):
     (score, diff) = structural_similarity(before_gray, after_gray, full=True)
     print("Image Similarity: {:.4f}%".format(score * 100))
 
-    # The diff image contains the actual image differences between the two images
-    # and is represented as a floating point data type in the range [0,1]
-    # so we must convert the array to 8-bit unsigned integers in the range
-    # [0,255] before we can use it with OpenCV
     diff = (diff * 255).astype("uint8")
     diff_box = cv2.merge([diff, diff, diff])
+    #viewImage(diff_box)
 
-    # Threshold the difference image, followed by finding contours to
-    # obtain the regions of the two input images that differ
-    thresh = cv2.threshold(diff, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+    ret, bw_img = cv2.threshold(diff_box, 35, 255, cv2.THRESH_BINARY)
+
+    #viewImage(bw_img)
+
+    newImg = cv2.cvtColor(bw_img, cv2.COLOR_BGR2GRAY)
+
+    thresh = cv2.threshold(newImg, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
     contours = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contours = contours[0] if len(contours) == 2 else contours[1]
 
     mask = np.zeros(before.shape, dtype='uint8')
     filled_after = after.copy()
 
-    i = 0
-
     results = []
 
     for c in contours:
         area = cv2.contourArea(c)
-        if area > 1000:
-            print(i)
 
-            if daube.size == 0 or (old_daube.size != 0 and cv2.contourArea(old_daube) - 200 < area < cv2.contourArea(old_daube) + 200):
-                daube = c
-            else:
-                results.append(c)
+        if area > 200:
+            results.append(c)
 
     for r in results:
-        drawStuff(r, diff_box, mask, filled_after, (0, 255, 0))
+        color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        drawStuff(r, diff_box, mask, filled_after, color)
 
-    drawStuff(daube, diff_box, mask, filled_after, (0, 0, 255))
+    #drawStuff(daube, diff_box, mask, filled_after, (0, 0, 255))
 
-    cv2.imshow('mask', cv2.resize(mask, (500, 500)))
-    cv2.imshow('filled after', cv2.resize(filled_after, (500, 500)))
-    viewImage(cv2.resize(diff_box, (500, 500)))
-    cv2.waitKey()
+    viewImage(mask)
+    #cv2.imshow('filled after', cv2.resize(filled_after, (500, 500)))
+    #viewImage(cv2.resize(diff_box, (500, 500)))
+    #cv2.waitKey()
+
+    gray = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+    res = []
+    daube = None
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT,  1.2, 100, param1=70, param2=30)
+    if circles is not None:
+        #circles = np.uint16(np.around(circles))
+        circles = np.round(circles[0, :]).astype("int")
+        #for i in circles[0, :]:
+        #    cv2.circle(after, (i[0], i[1]), i[2], (0, 255, 0), 1)
+        #    cv2.circle(after, (i[0], i[1]), 2, (0, 0, 255), 3)
+
+        for (x, y, r) in circles:
+            if 10 < r < 60:
+                if daube is None or r < daube[2]:
+                    if daube is not None:
+                        res.append(daube)
+                    daube = (x, y, r)
+                else:
+                    res.append((x, y, r))
+
+    i = 0
+    for (x, y, r) in res:
+        cv2.circle(after, (x, y), r, (0, 255, 0), 2)
+        cv2.rectangle(after, (x - 2, y - 2), (x + 2, y + 2), (0, 128, 255), -1)
+
+        a = abs(daube[0] - x)
+        b = abs(daube[1] - y)
+        print(a, b)
+        c = math.sqrt(a ** 2 + b ** 2)
+
+        if c != 0:
+            alpha = math.asin(a / c)
+
+            indexToDistance[i] = c - r - daube[2]
+
+            cm = (indexToDistance[i] / r) * 12.5
+
+            cv2.putText(after, "{0:.2f}cm".format(cm),
+                        (getBorderPoint(r, alpha, (x, y), (daube[0], daube[1]))),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 1)
+            cv2.line(after, (
+                getBorderPoint(daube[2], alpha, (daube[0], daube[1]),
+                               (x, y))),
+                     (getBorderPoint(r, alpha, (x, y), (daube[0], daube[1]))),
+                     [255, 0, 0], 2)
+    i += 1
+
+    cv2.circle(after, (daube[0], daube[1]), daube[2], (0, 0, 255), 2)
+
+    viewImage(after)
 
 
-# newImage = np.zeros((s*2, s*3, 3), dtype = np.uint8)
 
-# load the image, clone it for output, and then convert it to grayscale
 #image = cv2.imread("images\\WhatsApp Image 2022-09-30 at 13.29.04 (2).jpeg")
-image = cv2.imread("images\\DXWdy.jpg")
-image = cv2.resize(image, (500, 500))
-# contrast_brightness = apply_brightness_contrast(image, 37, 77)
+#image = cv2.imread("images\\DXWdy.jpg")
+#image = cv2.resize(image, (500, 500))
 
 # Load images
 im1 = cv2.imread('images\\bruh\\nig\\base.png')
@@ -115,8 +157,6 @@ im3 = cv2.imread('images\\bruh\\nig\\i1.png')
 im4 = cv2.imread('images\\bruh\\nig\\i2.png')
 
 testing(im1, im2)
-
-print("hello")
 
 testing(im1, im3)
 
