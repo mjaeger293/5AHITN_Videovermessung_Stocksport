@@ -36,16 +36,38 @@ smallestRadius = 0
 indexToDistance = {}
 
 # load the image, clone it for output, and then convert it to grayscale
-image = cv2.imread("curling.jpg")
-image = cv2.resize(image, (1000,1000))
+image = cv2.imread("stock/stock_7.jpg")
+image = cv2.resize(image, (500,500))
+cv2.imshow("image", image) #np.hstack([image, output])
+cv2.waitKey()
 #image = cv2.resize(image, (2000,2000))
 
 #gray = apply_brightness_contrast(image, -106, 122)
 #cv2.imshow("kontrast", gray) #np.hstack([image, output])
 #cv2.waitKey()
+image = (255-image)
+cv2.imshow("image", image) #np.hstack([image, output])
+cv2.waitKey()
+
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 cv2.imshow("image", gray) #np.hstack([image, output])
 cv2.waitKey()
+
+#mask = cv2.inRange(gray, (22, 93, 0), (180 , 255, 255)) # (22, 93, 0), (45, 255, 255)   #(15, 50, 0), (70, 255, 255)
+#cv2.imshow("image", mask)
+#cv2.waitKey()
+
+#mask_inv = cv2.bitwise_not(mask)
+#cv2.imshow("image", mask_inv)
+#cv2.waitKey()
+
+#mask2 = cv2.inRange(gray, (10, 82, 25), (22, 84, 255))
+#cv2.imshow("mask2", mask2)
+#cv2.waitKey()
+
+#gray = cv2.bitwise_and(image, image, mask=mask_inv)
+#cv2.imshow("image", gray)
+#cv2.waitKey()
 
 gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
 cv2.imshow("image", gray) #np.hstack([image, output])
@@ -61,7 +83,7 @@ cv2.waitKey()
 
 # Adaptive Guassian Threshold is to detect sharp edges in the Image. For more information Google it.
 gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, \
-							 cv2.THRESH_BINARY, 17, 1.5)
+							 cv2.THRESH_BINARY, 11, 3.5)
 
 cv2.imshow("image", gray) #np.hstack([image, output])
 cv2.waitKey()
@@ -72,14 +94,14 @@ gray = cv2.erode(gray, kernel, iterations=1)
 cv2.imshow("image", gray) #np.hstack([image, output])
 cv2.waitKey()
 
-gray = cv2.dilate(gray, kernel, iterations=1)
+gray =  cv2.dilate(gray, kernel, iterations=1)
 cv2.imshow("image", gray)
 cv2.waitKey()
 
 output = gray.copy()
 
 # detect circles in the image
-circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 260, param1=30, param2=65)
+circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 260, param1=20, param2=34)
 # ensure at least some circles were found
 if circles is not None:
 	# convert the (x, y) coordinates and radius of the circles to integers
