@@ -132,7 +132,7 @@ def testing(before, after):
 
             cv2.putText(after, "{0:.2f}cm".format(cm),
                         (getBorderPoint(r, alpha, (x, y), (daube[0], daube[1]))),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 1)
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 1)
             cv2.line(after, (
                 getBorderPoint(daube[2], alpha, (daube[0], daube[1]),
                                (x, y))),
@@ -143,12 +143,6 @@ def testing(before, after):
     cv2.circle(after, (daube[0], daube[1]), daube[2], (0, 0, 255), 2)
 
     viewImage(after)
-
-
-
-#image = cv2.imread("images\\WhatsApp Image 2022-09-30 at 13.29.04 (2).jpeg")
-#image = cv2.imread("images\\DXWdy.jpg")
-#image = cv2.resize(image, (500, 500))
 
 # Load images
 im1 = cv2.imread('images\\bruh\\nig\\base.png')
