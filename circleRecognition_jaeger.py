@@ -36,7 +36,7 @@ smallestRadius = 0
 indexToDistance = {}
 
 # load the image, clone it for output, and then convert it to grayscale
-image = cv2.imread("stock/stock_7.jpg")
+image = cv2.imread("images/undistorted/Image__2022-11-04__09-31-22_11zon.jpg")
 image = cv2.resize(image, (500,500))
 cv2.imshow("image", image) #np.hstack([image, output])
 cv2.waitKey()
@@ -102,6 +102,7 @@ output = gray.copy()
 
 # detect circles in the image
 circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 260, param1=20, param2=34)
+print("Detected circles!", circles)
 # ensure at least some circles were found
 if circles is not None:
 	# convert the (x, y) coordinates and radius of the circles to integers
@@ -139,7 +140,7 @@ if circles is not None:
 
 		i = i + 1
 	# show the output image
-	output = cv2.resize(output, (500,500))
+	test = cv2.resize(output, (500,500))
 	cv2.imshow("image", output) #np.hstack([image, output])
 	cv2.waitKey()
 	print(circles[daubeIndex])

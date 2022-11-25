@@ -7,8 +7,9 @@ import time
 from pypylon import pylon
 import cv2
 import platform
+import os
 
-res = pylon.PylonImage()
+img = pylon.PylonImage()
 camera = None
 ii = 0
 test = 0
@@ -21,6 +22,10 @@ while camera is None:
     except:
         pass
 
+def basler_to_OpenCV(grabResult):
+    image = converter.convert(grabResult)
+    return image.GetArray()
+
 
 def save_pic_to_file(image):
     if platform.system() == 'Windows':
@@ -30,45 +35,26 @@ def save_pic_to_file(image):
         quality = 90
         ipo.SetQuality(quality)
         test = + 1
-        filename = "images/test/saved_pypylon_img_%d.jpeg" % test
-        image.Save(pylon.ImageFileFormat_Jpeg, filename, ipo)
-    else:
-        filename = "saved_pypylon_img_%d.png" % 2
-        img.Save(pylon.ImageFileFormat_Png, filename)
+        if not os.path.exists("/images/capturedImages"):
+            os.makedirs("/images/capturedImages")
+            cv2.imwrite("../undistorted/" + "image" + str(test), basler_to_OpenCV(image))
+        else:
+            cv2.imwrite("../undistorted/" + "image" + str(test), basler_to_OpenCV(image))
 
 
 print(camera.GetDeviceInfo().GetModelName() + " has been found!")
 camera.Open()
-pylon.FeaturePersistence.Load("test.txt", camera.GetNodeMap())
-nodemap = camera.GetNodeMap()
-
 # Grabing Continusely (video) with minimal delay
-camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
 converter = pylon.ImageFormatConverter()
 
 # converting to opencv bgr format
 converter.OutputPixelFormat = pylon.PixelType_BGR8packed
 converter.OutputBitAlignment = pylon.OutputBitAlignment_MsbAligned
+camera.StartGrabbing()
 
-while camera.IsGrabbing():
+while True:
     with camera.RetrieveResult(5000) as result:
-        time.sleep(8)
-        res.AttachGrabResultBuffer(result)
-        save_pic_to_file(res)
-        print("Photo has been taken!")
-
-        if result.GrabSucceeded():
-            # Access the image data
-            image = converter.Convert(result)
-            img = image.GetArray()
-            cv2.namedWindow('title', cv2.WINDOW_NORMAL)
-            cv2.imshow('title', img)
-            k = cv2.waitKey(1)
-            if k == 27:
-                break
-            result.Release()
-
-# Releasing the resource
-camera.StopGrabbing()
-
-cv2.destroyAllWindows()
+        input("Bitte drücken Sie eine Taste ein neues Bild aufzunehmen")
+        img.AttachGrabResultBuffer(result)
+        save_pic_to_file(img)
+        print("Picture has been saved")

@@ -8,11 +8,15 @@ import math
 from PIL import Image
 import matplotlib.pyplot as plt
 
+
+
 daubeIndex = 0
 smallestRadius = 0
 indexToDistance = {}
 isFirstImage = True
 daube = None
+
+
 
 def viewImage(image):
     image = cv2.resize(image, (500, 500))
@@ -145,6 +149,7 @@ def testing(before, after):
     viewImage(after)
 
 # Load images
+
 im1 = cv2.imread('images\\bruh\\nig\\base.png')
 im2 = cv2.imread('images\\bruh\\nig\\config.png')
 im3 = cv2.imread('images\\bruh\\nig\\i1.png')
