@@ -22,7 +22,7 @@ imgpoints = [] # 2d points in image plane.
 
 images = []
 
-folder_dir = "D:\\Schule\\5AHITN\Schweiger\\5AHITN_Videovermessung_Stocksport\\images\\camera_calibration\\1811"
+folder_dir = "./1811"
 for img in os.listdir(folder_dir):
     if img.endswith(".jpg"):
         images.append(img)
@@ -102,13 +102,13 @@ def undistort(img_path):
     map1, map2 = cv2.fisheye.initUndistortRectifyMap(K, D, np.eye(3), K, DIM, cv2.CV_16SC2)
     undistorted_img = cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
     #viewImage(undistorted_img)
-    #print(img_path.split("\\").pop())
-    cv2.imwrite("../undistorted/" + img_path.split("\\").pop(), undistorted_img)
-    print("done")
+    fname = img_path.split("\\").pop()
+    cv2.imwrite("../undistorted/" + fname, undistorted_img)
+    print(f"{fname}: saved")
 
 
 images.clear()
-folder_dir = "D:\\Schule\\5AHITN\Schweiger\\5AHITN_Videovermessung_Stocksport\\images\\04_11\\edited"
+folder_dir = "../04_11/edited"
 
 for img in os.listdir(folder_dir):
     if img.endswith(".jpg"):
