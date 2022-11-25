@@ -103,9 +103,13 @@ def undistort(img_path):
     undistorted_img = cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
     #viewImage(undistorted_img)
     fname = img_path.split("\\").pop()
-    cv2.imwrite("../undistorted/" + fname, undistorted_img)
-    print(f"{fname}: saved")
-
+    if not os.path.exists("../undistorted"):
+        os.makedirs("../undistorted")
+        cv2.imwrite("../undistorted/" + fname, undistorted_img)
+        print(f"{fname}: saved")
+    else:
+        cv2.imwrite("../undistorted/" + fname, undistorted_img)
+        print(f"{fname}: saved")
 
 images.clear()
 folder_dir = "../04_11/edited"
