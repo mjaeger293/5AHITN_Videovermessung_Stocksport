@@ -40,7 +40,7 @@ def save_pic_to_file(image):
         # The JPEG format that is used here supports adjusting the image
         # quality (100 -> best quality, 0 -> poor quality).
         ipo = pylon.ImagePersistenceOptions()
-        quality = 70
+        quality = 80
         ipo.SetQuality(quality)
 
         if not os.path.exists(IMAGES_OUTPUT_PATH):
