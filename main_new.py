@@ -34,13 +34,11 @@ def calcBrightness(hsv, target):
     while hsv[..., 2].mean() < target - 0.3 or hsv[..., 2].mean() > target + 0.3:
         if hsv[..., 2].mean() > target:
             if minus:
-                print("nope")
                 return hsv
             plus = True
             hsv = decrease_brightness(hsv, step)
         else:
             if plus:
-                print("nope")
                 return hsv
             minus = True
             hsv = increase_brightness(hsv, step)
@@ -127,7 +125,8 @@ for after in os.listdir(UNDISTORTED_IMAGES_OUTPUT_PATH):
         imgHSV = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
         calib = cv2.cvtColor(calibrationImage, cv2.COLOR_RGB2HSV)
 
-        adjusted_img = calcBrightness(imgHSV, calib[..., 2].mean())
+        #adjusted_img = calcBrightness(imgHSV, calib[..., 2].mean())
+        adjusted_img = imgHSV
 
         print(f"original: {calib[..., 2].mean()}")
         print(f"result: {adjusted_img[..., 2].mean()}")
@@ -160,15 +159,18 @@ for after in os.listdir(UNDISTORTED_IMAGES_OUTPUT_PATH):
             for c in contours:
                 area = cv2.contourArea(c)
 
-                if area > 250:
+                if area > 12000:
+                    #if cv2.arcLength(c, False) > 1000:
                     results.append(c)
 
+            print(len(results))
             for r in results:
                 color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
                 cv2.drawContours(mask, [r], 0, (255, 255, 255), cv2.FILLED)
                 cv2.drawContours(res, [r], 0, color, cv2.FILLED)
 
             viewImage(mask)
+
             viewImage(res)
         # cv2.imwrite('brightness.png', imgHSV[..., 2])
 
