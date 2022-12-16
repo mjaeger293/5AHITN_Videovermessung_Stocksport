@@ -82,10 +82,10 @@ def viewImage(image):
 
 def undistort(img_path, K, D, DIM):
     img = cv2.imread(img_path)
-    h,w = img.shape[:2]
+    h, w = img.shape[:2]
     map1, map2 = cv2.fisheye.initUndistortRectifyMap(K, D, np.eye(3), K, DIM, cv2.CV_16SC2)
     undistorted_img = cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
-    #viewImage(undistorted_img)
+    # viewImage(undistorted_img)
 
     return undistorted_img
 
@@ -125,7 +125,7 @@ for after in os.listdir(UNDISTORTED_IMAGES_OUTPUT_PATH):
         imgHSV = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
         calib = cv2.cvtColor(calibrationImage, cv2.COLOR_RGB2HSV)
 
-        #adjusted_img = calcBrightness(imgHSV, calib[..., 2].mean())
+        # adjusted_img = calcBrightness(imgHSV, calib[..., 2].mean())
         adjusted_img = imgHSV
 
         print(f"original: {calib[..., 2].mean()}")
@@ -160,7 +160,7 @@ for after in os.listdir(UNDISTORTED_IMAGES_OUTPUT_PATH):
                 area = cv2.contourArea(c)
 
                 if area > 12000:
-                    #if cv2.arcLength(c, False) > 1000:
+                    # if cv2.arcLength(c, False) > 1000:
                     results.append(c)
 
             print(len(results))
@@ -168,23 +168,20 @@ for after in os.listdir(UNDISTORTED_IMAGES_OUTPUT_PATH):
                 color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
                 cv2.drawContours(mask, [r], 0, (255, 255, 255), cv2.FILLED)
                 cv2.drawContours(res, [r], 0, color, cv2.FILLED)
+                # der weiße Stock besteht aus 2 Konturen daher sind anstatt 6 7 Konturen gefunden
 
             viewImage(mask)
 
             viewImage(res)
         # cv2.imwrite('brightness.png', imgHSV[..., 2])
 
-    #calibrationImage = after
+        # calibrationImage = after
 
-    #diff = (diff * 255).astype("uint8")
-    #diff_box = cv2.merge([diff, diff, diff])
+        # diff = (diff * 255).astype("uint8")
+        # diff_box = cv2.merge([diff, diff, diff])
 
-    #ret, bw_img = cv2.threshold(diff_box, 35, 255, cv2.THRESH_BINARY)
+        # ret, bw_img = cv2.threshold(diff_box, 35, 255, cv2.THRESH_BINARY)
 
-    #viewImage(bw_img)
+        # viewImage(bw_img)
 
         i += 1
-
-
-
-
