@@ -45,10 +45,7 @@ print(camera.GetDeviceInfo().GetModelName() + " has been found!")
 camera.Open()
 camera.AutoTargetValue.SetValue(150)
 camera.GainAuto.SetValue("Continuous")
-try:
-    camera.Gain = camera.Gain.Max
-except genicam.LogicalErrorException:
-    camera.GainRaw = camera.GainRaw.Max
+
 # Grabing Continusely (video) with minimal delay
 
 camera.StartGrabbing()
